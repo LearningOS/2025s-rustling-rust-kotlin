@@ -2,7 +2,6 @@
 	single linked list merge
 	This problem requires you to merge two ordered singly linked lists into one ordered singly linked list
 */
-// I AM NOT DONE
 
 use std::fmt::{self, Display, Formatter};
 use std::ptr::NonNull;
@@ -29,13 +28,13 @@ struct LinkedList<T> {
     end: Option<NonNull<Node<T>>>,
 }
 
-impl<T> Default for LinkedList<T> {
+impl<T: PartialOrd + Clone> Default for LinkedList<T> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<T> LinkedList<T> {
+impl<T: PartialOrd + Clone> LinkedList<T> {
     pub fn new() -> Self {
         Self {
             length: 0,
@@ -69,15 +68,39 @@ impl<T> LinkedList<T> {
             },
         }
     }
-	pub fn merge(list_a:LinkedList<T>,list_b:LinkedList<T>) -> Self
-	{
-		//TODO
-		Self {
-            length: 0,
-            start: None,
-            end: None,
+    pub fn merge(list_a: LinkedList<T>, list_b: LinkedList<T>) -> Self {
+        let mut merged = LinkedList::new();
+
+        let mut ptr_a = list_a.start;
+        let mut ptr_b = list_b.start;
+
+        while let (Some(a), Some(b)) = (ptr_a, ptr_b) {
+            let val_a = unsafe { &(*a.as_ptr()).val };
+            let val_b = unsafe { &(*b.as_ptr()).val };
+
+            if val_a <= val_b {
+                merged.add(unsafe { std::ptr::read(val_a) });
+                ptr_a = unsafe { (*a.as_ptr()).next };
+            } else {
+                merged.add(unsafe { std::ptr::read(val_b) });
+                ptr_b = unsafe { (*b.as_ptr()).next };
+            }
         }
-	}
+
+        while let Some(a) = ptr_a {
+            let val = unsafe { &(*a.as_ptr()).val };
+            merged.add(unsafe { std::ptr::read(val) });
+            ptr_a = unsafe { (*a.as_ptr()).next };
+        }
+
+        while let Some(b) = ptr_b {
+            let val = unsafe { &(*b.as_ptr()).val };
+            merged.add(unsafe { std::ptr::read(val) });
+            ptr_b = unsafe { (*b.as_ptr()).next };
+        }
+
+        merged
+    }
 }
 
 impl<T> Display for LinkedList<T>
